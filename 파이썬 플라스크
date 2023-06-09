@@ -1,0 +1,197 @@
+🔨 공부한 것/시도한 것
+파이썬의 프레임워크인 flask를 쓰기 위해서는 문법을 따라야함. (render_template)
+아래 app.py파일에서 서버를 만드는 백엔드 코드를 구현함.
+Jsonify -> 제이쿼리로
+🔍 app.py (백엔드 구현 코드 분석)
+
+GET 요청
+통상적으로 데이터 조회(Read)를 요청 시 사용.
+예) 영화 목록 조회
+→ 데이터 전달 : URL 뒤에 물음표를 붙여 key=value로 전달
+POST 요청
+통상적으로 데이터 생성(Create), 변경(Update), 삭제(Delete) 요청 시 사용.
+예) 회원가입, 회원탈퇴, 비밀번호 수정
+→ 데이터 전달 : 바로 보이지 않는 HTML
+마지막 줄의 port=5000은 http://localhost:5000/ 에 올린다는 의미(정식 배포 시 코드 달라짐, 달라진 코드는 다음 게시물에서)
+from flask import Flask, render_template, request, jsonify
+app = Flask(__name__)
+
+from pymongo import MongoClient
+import certifi
+ca = certifi.where()
+client = MongoClient('mongodb+srv://sparta:test@cluster0.p77xisx.mongodb.net/?retryWrites=true&w=majority', tlsCAFile=ca)
+db = client.dbsparta
+
+
+@app.route('/')
+def home():
+    return render_template('index.html') #플라스크에  render_template기능을 이용하겠다고 하는 것.
+
+@app.route("/bucket", methods=["POST"])
+def bucket_post():
+    bucket_receive = request.form['bucket_give']
+    doc = {
+      'bucket': bucket_receive,
+    }
+    db.bucket.insert_one(doc)
+    return jsonify({'msg': '저장 완료!'})
+    
+@app.route("/bucket", methods=["GET"])
+def bucket_get():
+    all_buckets = list(db.bucket.find({},{'_id':False}))
+    return jsonify({'result': all_buckets})
+
+if __name__ == '__main__':
+    app.run('0.0.0.0', port=5000, debug=True)
+index.html 코드
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
+    />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+      crossorigin="anonymous"
+    ></script>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap"
+      rel="stylesheet"
+    />
+
+    <title>인생 버킷리스트</title>
+
+    <style>
+      * {
+        font-family: "Gowun Dodum", sans-serif;
+      }
+      .mypic {
+        width: 100%;
+        height: 200px;
+
+        background-image: linear-gradient(
+            0deg,
+            rgba(0, 0, 0, 0.5),
+            rgba(0, 0, 0, 0.5)
+          ),
+          url("https://images.unsplash.com/photo-1601024445121-e5b82f020549?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1189&q=80");
+        background-position: center;
+        background-size: cover;
+
+        color: white;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .mypic > h1 {
+        font-size: 30px;
+      }
+      .mybox {
+        width: 95%;
+        max-width: 700px;
+        padding: 20px;
+        box-shadow: 0px 0px 10px 0px lightblue;
+        margin: 20px auto;
+      }
+      .mybucket {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .mybucket > input {
+        width: 70%;
+      }
+      .mybox > li {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+
+        margin-bottom: 10px;
+        min-height: 48px;
+      }
+      .mybox > li > h2 {
+        max-width: 75%;
+        font-size: 20px;
+        font-weight: 500;
+        margin-right: auto;
+        margin-bottom: 0px;
+      }
+      .mybox > li > h2.done {
+        text-decoration: line-through;
+      }
+    </style>
+    <script>
+      $(document).ready(function () {
+        show_bucket();
+      });
+
+      function show_bucket() {
+        fetch('/bucket').then(res => res.json()).then(data => {
+               let rows = data['result']
+               $('#bucket-list').empty()
+              rows.forEach((a)=>{
+                let bucket = a['bucket']
+                let temp_html=`<li>
+                                <h2>✅ ${bucket}</h2>
+                              </li>`
+                              $('#bucket-list').append(temp_html)
+               })
+            })
+      }
+
+      function save_bucket() {
+        let bucket=$('#bucket').val(
+
+        )
+        let formData = new FormData();
+        formData.append("bucket_give", bucket);
+
+        fetch('/bucket', {method: "POST",body: formData,}).then((response) => response.json()).then((data) => {
+            alert(data["msg"]);
+            window.location.reload();
+          });
+      }
+
+    </script>
+  </head>
+  <body>
+    <div class="mypic">
+      <h1>나의 버킷리스트</h1>
+    </div>
+    <div class="mybox">
+      <div class="mybucket">
+        <input
+          id="bucket"
+          class="form-control"
+          type="text"
+          placeholder="이루고 싶은 것을 입력하세요"
+        />
+        <button onclick="save_bucket()" type="button" class="btn btn-outline-primary">기록하기</button>
+      </div>
+    </div>
+    <div class="mybox" id="bucket-list">
+      <li>
+        <h2>✅ 호주에서 스카이다이빙 하기</h2>
+      </li>
+    </div>
+  </body>
+</html>
+최종 결과물
+
+💡 알게된 것
+플라스크의 개념-> 파이썬의 프레임 워크!
