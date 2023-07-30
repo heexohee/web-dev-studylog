@@ -1,4 +1,6 @@
-## CRUD(Create, Read, Update, Delete) 흐름을 프론트엔드에서 구현하는 예시를 들어보겠습니다. 이 예시에서는 React와 Axios를 사용하여 API와 통신하고, 로컬 상태를 관리하는 방법을 설명.
+## CRUD(Create, Read, Update, Delete) 흐름을 프론트엔드에서 구현하는 예시.
+
+이 예시에서는 React와 Axios를 사용하여 API와 통신하고, 로컬 상태를 관리하는 방법을 설명.
 
 ### 게시물 목록 가져오기(Read)
 ```
