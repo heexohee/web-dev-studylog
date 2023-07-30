@@ -144,9 +144,54 @@ function DeletePost({ postId }) {
   );
 }
 ```
+isloading 변수는 주로 비동기 통신을 통해 데이터를 가져오는 과정에서 사용됩니다. 서버로부터 데이터를 조회하는데 시간이 걸릴 수 있으므로, 이때 사용자에게 로딩 상태를 보여주기 위해 isloading 변수를 활용합니다.
+
+예를 들어, 게시물 목록을 가져오는 경우를 생각해봅시다. 서버로부터 게시물 목록을 가져오는 동안 사용자에게 로딩 스피너나 메시지를 보여
 
 프론트엔드에서 API와 통신하여 CRUD 작업을 수행하는 방법을 보여줍니다. 
 각각의 기능은 Axios를 사용하여 서버와 비동기 통신하며, 로컬 상태를 이용하여 데이터를 관리합니다. 
+
+```
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+function PostList() {
+  const [posts, setPosts] = useState([]);
+  const [isloading, setIsloading] = useState(true);
+
+  useEffect(() => {
+    // API에서 게시물 목록 가져오기
+    axios.get('/api/posts')
+      .then((response) => {
+        // 응답 데이터를 로컬 상태에 저장
+        setPosts(response.data);
+        // 데이터 가져오기 완료 후 로딩 상태 변경
+        setIsloading(false);
+      })
+      .catch((error) => {
+        console.error('Error fetching posts:', error);
+        // 에러 발생 시에도 로딩 상태 변경
+        setIsloading(false);
+      });
+  }, []);
+
+  if (isloading) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div>
+      <h1>게시물 목록</h1>
+      {posts.map((post) => (
+        <div key={post.id}>
+          <h2>{post.title}</h2>
+          <p>{post.content}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
 또한 React의 useEffect 훅을 사용하여 컴포넌트가 마운트되었을 때나 특정 값을 받아왔을 때 작업을 수행하도록 설정합니다. 
 이를 통해 사용자가 게시물을 작성, 수정, 삭제할 수 있는 CRUD 흐름을 구현할 수 있습니다.
 
